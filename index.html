@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="말랑말랑 AI 그림 책방 - 초등학생을 위한 AI 그림 생성기. 주인공, 배경, 행동을 골라 나만의 그림을 만들어보세요!">
+    <meta name="keywords" content="AI 그림, 어린이, 초등학생, 그림 책방, AI 아트">
+    <meta name="author" content="말랑말랑 AI 그림 책방">
+    <title>말랑말랑 AI 그림 책방</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+
+        <header>
+            <h1>🎨 말랑말랑 AI 그림 책방</h1>
+            <p class="subtitle">주인공, 배경, 행동을 골라서 나만의 특별한 그림을 만들어봐요! ✨</p>
+        </header>
+
+        <!-- Step 1: 주인공 고르기 -->
+        <section class="step-section" id="step1">
+            <div class="step-header">
+                <span class="step-badge">Step 1</span>
+                <h2 class="step-title">주인공 고르기</h2>
+            </div>
+            <p class="step-description">그림의 주인공을 골라주세요!</p>
+            <div class="selection-grid" id="characterGrid">
+                <button class="selection-btn" data-type="char" data-value="코끼리">
+                    <span class="emoji">🐘</span>
+                    코끼리
+                </button>
+
+                <button class="selection-btn" data-type="char" data-value="호랑이">
+                    <span class="emoji">🐯</span>
+                    호랑이
+                </button>
+                <button class="selection-btn" data-type="char" data-value="토끼">
+                    <span class="emoji">🐰</span>
+                    토끼
+                </button>
+
+
+                <button class="selection-btn" data-type="char" data-value="참새">
+                    <span class="emoji">🐦</span>
+                    참새
+                </button>
+            </div>
+        </section>
+
+        <!-- Step 2: 배경 고르기 -->
+        <section class="step-section" id="step2">
+            <div class="step-header">
+                <span class="step-badge">Step 2</span>
+                <h2 class="step-title">배경 고르기</h2>
+            </div>
+            <p class="step-description">어디서 그림이 펼쳐질까요?</p>
+            <div class="selection-grid" id="backgroundGrid">
+                <button class="selection-btn" data-type="bg" data-value="우주">
+                    <span class="emoji">🚀</span>
+                    우주
+                </button>
+                <button class="selection-btn" data-type="bg" data-value="숲 속">
+                    <span class="emoji">🌳</span>
+                    숲 속
+                </button>
+                <button class="selection-btn" data-type="bg" data-value="바다">
+                    <span class="emoji">🐳</span>
+                    바다
+                </button>
+                <button class="selection-btn" data-type="bg" data-value="해변">
+                    <span class="emoji">🏖️</span>
+                    해변
+                </button>
+
+            </div>
+        </section>
+
+        <!-- Step 3: 행동 고르기 -->
+        <section class="step-section" id="step3">
+            <div class="step-header">
+                <span class="step-badge">Step 3</span>
+                <h2 class="step-title">행동 고르기</h2>
+            </div>
+            <p class="step-description">주인공이 무엇을 하고 있을까요?</p>
+            <div class="selection-grid" id="actionGrid">
+                <button class="selection-btn" data-type="action" data-value="춤을 추고">
+                    <span class="emoji">💃</span>
+                    춤추기
+                </button>
+                <button class="selection-btn" data-type="action" data-value="폴짝폴짝 뛰고">
+                    <span class="emoji">🤸</span>
+                    뛰기
+                </button>
+                <button class="selection-btn" data-type="action" data-value="신나게 달리고">
+                    <span class="emoji">🏃</span>
+                    달리기
+                </button>
+
+
+
+                <button class="selection-btn" data-type="action" data-value="노래를 부르고">
+                    <span class="emoji">🎤</span>
+                    노래하기
+                </button>
+            </div>
+        </section>
+
+        <!-- Prompt Preview Zone -->
+        <div class="prompt-preview-zone">
+            <div class="prompt-header">
+                <label class="prompt-label">📝 AI가 만든 마법 주문</label>
+                <span class="readonly-badge">🔒 학생 수정 불가</span>
+            </div>
+            <div id="promptDisplay" class="prompt-display" aria-live="polite" aria-label="AI가 생성한 프롬프트 표시 영역">
+                <span class="prompt-placeholder">위에서 주인공, 배경, 행동을 모두 고르면 여기에 마법 주문이 나타나요! ✨</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="createPromptBtn" class="create-btn" disabled aria-label="AI 마법 주문 만들기">
+                📝 마법 주문 만들기
+            </button>
+            <button id="generateBtn" class="generate-btn" disabled aria-label="AI에게 그림 그려달라고 하기">
+                🎨 AI에게 그림 그려달라고 하기
+            </button>
+        </div>
+
+        <!-- Loading Box: Prompt Generation -->
+        <div id="loadingBox" class="loading-box" hidden aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p class="loading-text">마법 주문을 만들고 있어요...</p>
+        </div>
+
+        <!-- Loading Box: Image Generation -->
+        <div id="imageLoadingBox" class="loading-box image-loading-box" hidden aria-live="polite">
+            <div class="spinner image-spinner" aria-hidden="true"></div>
+            <p class="loading-text">AI 화가가 열심히 그림을 그리고 있어요... 🎨</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message" hidden role="alert" aria-live="assertive"></div>
+
+        <!-- Output Zone -->
+        <div id="outputZone" class="output-zone" hidden>
+            <div class="success-message">
+                <span class="success-icon">🎉</span>
+                <p class="success-text">그림이 완성되었어요! 멋지지 않나요?</p>
+            </div>
+            <div class="image-wrapper">
+                <img id="resultImage" class="result-image" src="" alt="AI가 생성한 그림" />
+            </div>
+        </div>
+
+    </div><!-- /.container -->
+
+    <script src="script.js"></script>
+</body>
+</html>
