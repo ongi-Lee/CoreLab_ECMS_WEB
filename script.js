@@ -183,8 +183,6 @@ generateBtn.addEventListener('click', async () => {
         resultImage.src = `data:${data.mimeType};base64,${data.imageBytes}`;
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
-        // 새 창/탭에 이미지 열기
-        window.open(resultImage.src, '_blank');
 
     } catch (err) {
         console.error(err);
@@ -192,7 +190,6 @@ generateBtn.addEventListener('click', async () => {
         resultImage.src = FALLBACK_IMG;
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
-        window.open(FALLBACK_IMG, '_blank');
         showError(`그림을 만드는 데 실패했어요 😢\n${err.message}`);
     } finally {
         imageLoadingBox.setAttribute('hidden', '');

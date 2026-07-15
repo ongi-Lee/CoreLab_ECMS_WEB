@@ -377,46 +377,90 @@ header p {
 
 /* ── 결과 영역 ── */
 .output-zone {
-    display: none;
-    margin-top: 36px;
-    border-top: 2px dashed var(--border-color);
-    padding-top: 36px;
-    text-align: center;
+    margin-top: 32px;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
 }
 
-.success-message {
+.output-zone[hidden] {
+    display: none !important;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.output-label {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #1e293b;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 6px;
+}
+
+.success-badge {
+    font-size: 0.8rem;
+    background: var(--success);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    animation: bounce 2s infinite;
+}
+
+.output-description {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    text-align: left;
     margin-bottom: 20px;
-}
-
-.success-icon {
-    font-size: 2rem;
-}
-
-.success-text {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--success);
+    line-height: 1.5;
 }
 
 .image-wrapper {
-    display: inline-block;
-    background: #f8fafc;
+    display: block;
+    background: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 12px;
+    border-radius: 16px;
+    padding: 8px;
     max-width: 100%;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 
 .result-image {
-    max-width: 100%;
+    width: 100%;
+    max-width: 500px;
     height: auto;
-    border-radius: 14px;
+    border-radius: 12px;
     display: block;
+    margin: 0 auto;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ── 반응형 ── */

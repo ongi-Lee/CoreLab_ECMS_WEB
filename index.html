@@ -143,12 +143,13 @@
         <!-- Error Message -->
         <div id="errorMessage" class="error-message" hidden role="alert" aria-live="assertive"></div>
 
-        <!-- Output Zone -->
+        <!-- Output Zone: 완성된 그림 -->
         <div id="outputZone" class="output-zone" hidden>
-            <div class="success-message">
-                <span class="success-icon">🎉</span>
-                <p class="success-text">그림이 완성되었어요! 멋지지 않나요?</p>
+            <div class="output-header">
+                <label class="output-label">🎨 AI가 그린 마법 그림</label>
+                <span class="success-badge">✨ 완성!</span>
             </div>
+            <p class="output-description">주인공, 배경, 행동 주문으로 탄생한 세상에 단 하나뿐인 그림이에요.</p>
             <div class="image-wrapper">
                 <img id="resultImage" class="result-image" src="" alt="AI가 생성한 그림" />
             </div>
