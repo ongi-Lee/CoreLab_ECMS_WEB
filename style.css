@@ -1,0 +1,481 @@
+/* ===================================================
+   말랑말랑 AI 그림 책방 - style.css
+   =================================================== */
+
+/* ── 디자인 토큰 ── */
+:root {
+    --bg-color:        #f0f4ff;
+    --card-bg:         #ffffff;
+    --text-main:       #2d3748;
+    --text-muted:      #718096;
+    --primary:         #4f46e5;
+    --primary-hover:   #4338ca;
+    --accent-char:     #ff7a59;
+    --accent-bg:       #38bdf8;
+    --accent-action:   #a855f7;
+    --border-color:    #e2e8f0;
+    --success:         #10b981;
+    --radius-card:     24px;
+    --radius-btn:      16px;
+    --shadow-card:     0 10px 40px rgba(79, 70, 229, 0.08);
+}
+
+/* ── 리셋 & 기본 ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* ── 메인 컨테이너 ── */
+.container {
+    width: 100%;
+    max-width: 960px;
+    background: var(--card-bg);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 48px);
+    border: 1px solid var(--border-color);
+}
+
+/* ── 헤더 ── */
+header {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #1e293b;
+    font-weight: 800;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* ── 섹션 타이틀 ── */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title .step-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: white;
+}
+
+#step1 .step-badge { background: var(--accent-char); }
+#step2 .step-badge { background: var(--accent-bg); }
+#step3 .step-badge { background: var(--accent-action); }
+
+.step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.step-description {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    margin-left: 2px;
+}
+
+/* ── 선택 그리드 ── */
+.selection-grid {
+    display: grid;
+    /* 큰 화면: 4열 고정 → 버튼이 전체 너비를 꼽 채우고 고르게 */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 0;
+}
+
+/* ── 선택 버튼 ── */
+.selection-btn {
+    background: #f8fafc;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #475569;
+    font-family: inherit;
+    width: 100%;  /* 그리드 셀을 꼽 채우기 */
+    aspect-ratio: 1 / 1; /* 정사각형 비율 유지 */
+}
+
+.selection-btn .emoji {
+    font-size: 2.4rem;
+    transition: transform 0.2s ease;
+    line-height: 1;
+}
+
+.selection-btn:hover {
+    transform: translateY(-3px);
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* 활성화 상태 */
+.selection-btn.active-char {
+    border-color: var(--accent-char);
+    background: #fff5f2;
+    color: var(--accent-char);
+    box-shadow: 0 4px 14px rgba(255,122,89,0.18);
+}
+.selection-btn.active-char .emoji { transform: scale(1.2); }
+
+.selection-btn.active-bg {
+    border-color: var(--accent-bg);
+    background: #f0f9ff;
+    color: #0369a1;
+    box-shadow: 0 4px 14px rgba(56,189,248,0.18);
+}
+.selection-btn.active-bg .emoji { transform: scale(1.2); }
+
+.selection-btn.active-action {
+    border-color: var(--accent-action);
+    background: #faf5ff;
+    color: #7e22ce;
+    box-shadow: 0 4px 14px rgba(168,85,247,0.18);
+}
+.selection-btn.active-action .emoji { transform: scale(1.2); }
+
+/* ── 프롬프트 표시 영역 ── */
+.prompt-preview-zone {
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+.prompt-preview-zone.has-prompt {
+    border-color: var(--accent-action);
+}
+
+.prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.prompt-label {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.readonly-badge {
+    font-size: 0.78rem;
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.lock-badge {
+    font-size: 0.78rem;
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.prompt-display {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.7;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    cursor: default;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    transition: border-color 0.3s;
+}
+
+.prompt-placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 0.95rem;
+}
+
+/* ── 버튼 래퍼 ── */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+/* 프롬프트 만들기 버튼 */
+.create-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 18px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+    font-family: inherit;
+}
+
+.create-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    filter: brightness(1.05);
+}
+
+.create-btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* 그림 그리기 버튼 */
+.generate-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 18px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.3);
+    font-family: inherit;
+}
+
+.generate-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79,70,229,0.4);
+}
+
+.generate-btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ── 로딩 박스 ── */
+.loading-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.spinner {
+    width: 52px;
+    height: 52px;
+    border: 5px solid #e2e8f0;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.image-spinner {
+    border-top-color: var(--accent-action);
+}
+
+.loading-text {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 1rem;
+    text-align: center;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── 에러 메시지 ── */
+.error-message {
+    display: none;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ── 결과 영역 ── */
+.output-zone {
+    display: none;
+    margin-top: 36px;
+    border-top: 2px dashed var(--border-color);
+    padding-top: 36px;
+    text-align: center;
+}
+
+.success-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.success-icon {
+    font-size: 2rem;
+}
+
+.success-text {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--success);
+}
+
+.image-wrapper {
+    display: inline-block;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 12px;
+    max-width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+}
+
+.result-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    display: block;
+}
+
+/* ── 반응형 ── */
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+    body { padding: 16px 12px; }
+    .container { border-radius: 20px; }
+    header h1 { font-size: 1.7rem; }
+    .selection-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .selection-btn {
+        padding: 16px 8px;
+        font-size: 0.88rem;
+    }
+    .selection-btn .emoji { font-size: 2rem; }
+    .action-buttons { flex-direction: column; }
+    .create-btn, .generate-btn { font-size: 1.05rem; padding: 16px; }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+    body { padding: 10px 8px; }
+    .container { padding: 18px 14px; border-radius: 16px; }
+    header h1 { font-size: 1.35rem; gap: 8px; }
+    header p { font-size: 0.88rem; }
+    .step-title { font-size: 0.95rem; }
+    .step-description { font-size: 0.82rem; }
+    .selection-grid {
+        /* 모바일: 2열 고정 */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .selection-btn {
+        padding: 16px 8px;
+        font-size: 0.82rem;
+        border-radius: 12px;
+        aspect-ratio: 1 / 1;
+    }
+    .selection-btn .emoji { font-size: 1.8rem; }
+    .create-btn, .generate-btn {
+        font-size: 0.95rem;
+        padding: 14px;
+        border-radius: 12px;
+    }
+    .prompt-display { font-size: 0.92rem; padding: 12px 14px; }
+    .readonly-badge { font-size: 0.72rem; padding: 3px 8px; }
+    .loading-box { padding: 24px; }
+    .spinner { width: 40px; height: 40px; }
+}
+
+/* 초소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .selection-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .selection-btn .emoji { font-size: 1.5rem; }
+    header h1 { font-size: 1.15rem; }
+}
