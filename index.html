@@ -12,7 +12,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <!-- 로그인 화면 Overlay -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <h2>🎨 말랑말랑 AI 그림 책방</h2>
+            <p class="login-subtitle">재미있는 AI 그림 나라로 들어가기 위해<br>선생님이 주신 아이디와 비밀번호를 입력해요! ✨</p>
+            <div class="login-form">
+                <div class="input-group">
+                    <label for="loginId">아이디</label>
+                    <input type="text" id="loginId" placeholder="아이디를 입력하세요 (예: TEST_01)" autocomplete="username" />
+                </div>
+                <div class="input-group">
+                    <label for="loginPw">비밀번호</label>
+                    <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
+                </div>
+                <button id="loginBtn" class="login-btn">🚪 책방 들어가기!</button>
+                <div id="loginError" class="login-error-message" hidden></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 콘텐츠 컨테이너 (로그인 완료 시 노출) -->
+    <div id="mainContainer" class="container" hidden>
+        <button id="logoutBtn" class="logout-btn">🔒 로그아웃</button>
 
         <header>
             <h1>🎨 말랑말랑 AI 그림 책방</h1>

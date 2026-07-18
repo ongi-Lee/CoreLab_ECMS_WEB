@@ -47,6 +47,7 @@ body {
     box-shadow: var(--shadow-card);
     padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 48px);
     border: 1px solid var(--border-color);
+    position: relative; /* 로그아웃 버튼 배치를 위한 상대 경로 기준점 */
 }
 
 /* ── 헤더 ── */
@@ -523,3 +524,159 @@ header p {
     .selection-btn .emoji { font-size: 1.5rem; }
     header h1 { font-size: 1.15rem; }
 }
+
+/* ── 로그인 오버레이 & 로그아웃 스타일 ── */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.login-overlay[hidden] {
+    display: none !important;
+}
+
+.login-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-color);
+    padding: clamp(24px, 5vw, 40px) clamp(20px, 4vw, 32px);
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    animation: fadeInUp 0.4s ease-out;
+    box-sizing: border-box;
+}
+
+.login-card h2 {
+    font-size: clamp(1.3rem, 4vw, 1.6rem);
+    color: #1e293b;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.login-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.input-group {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #475569;
+    margin-left: 4px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    border-color: var(--primary);
+    background: #fcfcff;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.login-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+    font-family: inherit;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+    filter: brightness(1.05);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-error-message {
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* 로그아웃 버튼 */
+.logout-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #f1f5f9;
+    border: 1px solid var(--border-color);
+    color: #64748b;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    z-index: 10;
+}
+
+.logout-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+/* 모바일 로그아웃 버튼 대응 */
+@media (max-width: 480px) {
+    .logout-btn {
+        position: relative;
+        top: 0;
+        right: 0;
+        float: right;
+        margin-bottom: 12px;
+    }
+}
+

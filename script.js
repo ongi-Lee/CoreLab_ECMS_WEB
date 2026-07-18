@@ -217,3 +217,128 @@ function hideError() {
    초기화
    ──────────────────────────────────────────────────────── */
 checkSelections();
+
+
+/* ────────────────────────────────────────────────────────
+   로그인 시스템 및 세션 관리
+   ──────────────────────────────────────────────────────── */
+const loginOverlay  = document.getElementById('loginOverlay');
+const mainContainer = document.getElementById('mainContainer');
+const loginIdInput  = document.getElementById('loginId');
+const loginPwInput  = document.getElementById('loginPw');
+const loginBtn      = document.getElementById('loginBtn');
+const loginError    = document.getElementById('loginError');
+const logoutBtn     = document.getElementById('logoutBtn');
+
+// 세션 상태 확인 함수
+function checkAuth() {
+    const sessionToken = localStorage.getItem('mallang_session');
+    if (sessionToken) {
+        loginOverlay.setAttribute('hidden', '');
+        mainContainer.removeAttribute('hidden');
+    } else {
+        loginOverlay.removeAttribute('hidden');
+        mainContainer.setAttribute('hidden', '');
+    }
+}
+
+// 로그인 실행
+async function handleLogin() {
+    const username = loginIdInput.value.trim();
+    const password = loginPwInput.value.trim();
+
+    if (!username || !password) {
+        showLoginError('아이디와 비밀번호를 모두 입력해 주세요!');
+        return;
+    }
+
+    // 아이디를 이메일 형식으로 변환 (대소문자 오타 방지를 위해 소문자 처리)
+    const email = `${username.toLowerCase()}@corelab.com`;
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = '🚪 책방에 들어가는 중...';
+    hideLoginError();
+
+    try {
+        // Supabase Auth REST API 호출
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: {
+                'apikey':       SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            // 사용자용 에러 피드백
+            throw new Error(errData.error_description || '아이디나 비밀번호를 다시 확인해 주세요 😢');
+        }
+
+        const data = await res.json();
+        
+        // 브라우저 로컬 스토리지에 토큰 저장하여 로그인 상태 유지
+        localStorage.setItem('mallang_session', data.access_token);
+        
+        // 폼 초기화
+        loginIdInput.value = '';
+        loginPwInput.value = '';
+
+        // 로그인 성공 UI 전환
+        checkAuth();
+
+    } catch (err) {
+        console.error(err);
+        showLoginError(err.message || '로그인에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '🚪 책방 들어가기!';
+    }
+}
+
+// 이벤트 리스너 등록
+loginBtn.addEventListener('click', handleLogin);
+
+// 엔터 키 누르면 로그인 실행
+loginPwInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleLogin();
+    }
+});
+loginIdInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        loginPwInput.focus();
+    }
+});
+
+// 로그아웃 처리
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('mallang_session');
+    
+    // 선택값 초기화
+    state.character  = null;
+    state.background = null;
+    state.action     = null;
+    
+    // 활성화 상태인 그리드 버튼 클래스 해제
+    document.querySelectorAll('.selection-btn').forEach(btn => {
+        btn.classList.remove('active-char', 'active-bg', 'active-action');
+    });
+    
+    checkSelections();
+    checkAuth();
+});
+
+// 에러 메시지 헬퍼
+function showLoginError(msg) {
+    loginError.removeAttribute('hidden');
+    loginError.textContent = msg;
+}
+function hideLoginError() {
+    loginError.setAttribute('hidden', '');
+    loginError.textContent = '';
+}
+
+// 초기 로드 시 실행
+checkAuth();
