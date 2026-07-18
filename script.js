@@ -252,42 +252,44 @@ async function handleLogin() {
         return;
     }
 
-    // 아이디를 이메일 형식으로 변환 (대소문자 오타 방지를 위해 소문자 처리)
-    const email = `${username.toLowerCase()}@ydes.kr`;
-
     loginBtn.disabled = true;
     loginBtn.textContent = '🚪 책방에 들어가는 중...';
     hideLoginError();
 
     try {
-        // Supabase Auth REST API 호출
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        // Supabase Database RPC 함수 호출로 안전하게 검증
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_login`, {
             method: 'POST',
             headers: {
-                'apikey':       SUPABASE_ANON_KEY,
-                'Content-Type': 'application/json'
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({
+                p_username: username,
+                p_password: password
+            })
         });
 
         if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            console.error('Supabase Auth Error Detail:', errData);
-            // 사용자용 에러 피드백
-            throw new Error(errData.error_description || errData.msg || errData.message || '아이디나 비밀번호를 다시 확인해 주세요 😢');
+            throw new Error('서버 통신에 실패했습니다. 다시 시도해 주세요.');
         }
 
-        const data = await res.json();
-        
-        // 브라우저 로컬 스토리지에 토큰 저장하여 로그인 상태 유지
-        localStorage.setItem('mallang_session', data.access_token);
-        
-        // 폼 초기화
-        loginIdInput.value = '';
-        loginPwInput.value = '';
+        const isSuccess = await res.json();
 
-        // 로그인 성공 UI 전환
-        checkAuth();
+        if (isSuccess === true) {
+            // 로그인 상태 기록 (로컬 스토리지에 단순 플래그 저장)
+            localStorage.setItem('mallang_session', 'logged_in_' + username);
+            
+            // 폼 초기화
+            loginIdInput.value = '';
+            loginPwInput.value = '';
+
+            // 로그인 성공 UI 전환
+            checkAuth();
+        } else {
+            throw new Error('아이디나 비밀번호가 틀렸어요 😢');
+        }
 
     } catch (err) {
         console.error(err);
