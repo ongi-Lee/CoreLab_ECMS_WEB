@@ -56,7 +56,13 @@ serve(async (req) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: safeStoryPrompt }] }],
-          generationConfig: { responseMimeType: "image/png" },
+          generationConfig: {
+            responseMimeType: "image/png",
+            responseModalities: ["IMAGE"],
+            imageConfig: {
+              aspectRatio: "16:9"
+            }
+          },
         }),
       }
     );
