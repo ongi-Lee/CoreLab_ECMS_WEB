@@ -253,7 +253,7 @@ async function handleLogin() {
     }
 
     // 아이디를 이메일 형식으로 변환 (대소문자 오타 방지를 위해 소문자 처리)
-    const email = `${username.toLowerCase()}@corelab.com`;
+    const email = `${username.toLowerCase()}@ydes.kr`;
 
     loginBtn.disabled = true;
     loginBtn.textContent = '🚪 책방에 들어가는 중...';
