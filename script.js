@@ -272,8 +272,9 @@ async function handleLogin() {
 
         if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
+            console.error('Supabase Auth Error Detail:', errData);
             // 사용자용 에러 피드백
-            throw new Error(errData.error_description || '아이디나 비밀번호를 다시 확인해 주세요 😢');
+            throw new Error(errData.error_description || errData.msg || errData.message || '아이디나 비밀번호를 다시 확인해 주세요 😢');
         }
 
         const data = await res.json();
