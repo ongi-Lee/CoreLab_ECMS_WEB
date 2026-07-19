@@ -42,9 +42,12 @@ const resultImage       = document.getElementById('resultImage');
 const errorMessage      = document.getElementById('errorMessage');
 const countBadge        = document.getElementById('countBadge');
 const remainingCountEl  = document.getElementById('remainingCount');
+const promptCountBadge  = document.getElementById('promptCountBadge');
 
 // 이미지 생성 최대 횟수
-const MAX_IMAGE_COUNT = 5;
+const MAX_IMAGE_COUNT  = 5;
+// 마법 주문 최대 횟수
+const MAX_PROMPT_COUNT = 5;
 
 
 /* ────────────────────────────────────────────────────────
@@ -124,13 +127,38 @@ async function callEdgeFunction(functionName, body) {
 createPromptBtn.addEventListener('click', async () => {
     if (!state.character || !state.background || !state.action) return;
 
+    // 현재 로그인된 유저명 가져오기
+    const sessionVal  = localStorage.getItem('mallang_session') || '';
+    const currentUser = sessionVal.replace('logged_in_', '');
+
     // 로딩 시작
     hideError();
     loadingBox.removeAttribute('hidden');
-    createPromptBtn.disabled  = true;
+    createPromptBtn.disabled    = true;
     createPromptBtn.textContent = '⏳ 마법 주문을 만들고 있어요...';
 
     try {
+        // ① 마법 주문 횟수 차감 시도
+        const countRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_prompt_count`, {
+            method: 'POST',
+            headers: {
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_username: currentUser })
+        });
+
+        const canCreate = await countRes.json();
+
+        if (canCreate !== true) {
+            showError('마법 주문 만들기 횟수를 모두 사용했어요! 선생님께 문의해 주세요 😢');
+            lockCreatePromptBtn();
+            updatePromptCountBadge(MAX_PROMPT_COUNT);
+            return;
+        }
+
+        // ② 횟수 차감 성공 → 마법 주문 실제 요청
         const data = await callEdgeFunction('generate-prompt', {
             character:  state.character,
             background: state.background,
@@ -145,18 +173,22 @@ createPromptBtn.addEventListener('click', async () => {
         document.querySelector('.prompt-preview-zone').classList.add('has-prompt');
 
         // 이미지 그리기 버튼 활성화
-        generateBtn.disabled = false;
+        generateBtn.disabled    = false;
         generateBtn.textContent = '🎨 AI에게 그림 그려달라고 하기!';
 
         // 주문 만들기 버튼 완료 표시
         createPromptBtn.textContent = '✨ 마법 주문 완성! (다시 만들려면 클릭)';
         createPromptBtn.disabled = false;
 
+        // 배지 업데이트
+        await loadPromptCount(currentUser);
+
     } catch (err) {
         console.error(err);
         showError(`마법 주문을 만드는 데 실패했어요 😢\n${err.message}`);
         createPromptBtn.disabled = false;
         createPromptBtn.textContent = '📝 마법 주문 만들기 (다시 시도)';
+        await loadPromptCount(currentUser);
     } finally {
         loadingBox.setAttribute('hidden', '');
     }
@@ -216,7 +248,56 @@ function lockGenerateBtn() {
 }
 
 /* ────────────────────────────────────────────────────────
-   그림 그리기 버튼
+   마법 주문 횟수 관리
+   ──────────────────────────────────────────────────────── */
+
+// 마법 주문 배지 UI 업데이트
+function updatePromptCountBadge(usedCount) {
+    const remaining = MAX_PROMPT_COUNT - usedCount;
+    promptCountBadge.removeAttribute('hidden');
+
+    if (remaining <= 0) {
+        promptCountBadge.innerHTML = `<span class="count-icon">📝</span> <span>가능한 횟수가 모두 소진되었습니다.</span>`;
+    } else {
+        promptCountBadge.innerHTML = `<span class="count-icon">📝</span> <span>마법 주문 남은 횟수: </span><span class="count-number">${remaining}</span><span>회</span>`;
+    }
+}
+
+// 마법 주문 횟수 DB에서 조회
+async function loadPromptCount(username) {
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_prompt_count`, {
+            method: 'POST',
+            headers: {
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_username: username })
+        });
+        if (!res.ok) return;
+        const usedCount = await res.json();
+        updatePromptCountBadge(usedCount);
+
+        if (usedCount >= MAX_PROMPT_COUNT) {
+            lockCreatePromptBtn();
+        }
+    } catch (e) {
+        console.error('마법 주문 횟수 조회 실패:', e);
+    }
+}
+
+// 마법 주문 버튼 잠금
+function lockCreatePromptBtn() {
+    createPromptBtn.disabled    = true;
+    createPromptBtn.textContent = '🚫 마법 주문 횟수를 모두 사용했어요!';
+    createPromptBtn.style.background = '#e2e8f0';
+    createPromptBtn.style.color      = '#94a3b8';
+    createPromptBtn.style.boxShadow  = 'none';
+}
+
+/* ────────────────────────────────────────────────────────
+   이미지 생성 횟수 관리
    ──────────────────────────────────────────────────────── */
 generateBtn.addEventListener('click', async () => {
     if (!state.englishPrompt) {
@@ -377,6 +458,7 @@ async function handleLogin() {
             // 로그인 성공 UI 전환 및 횟수 로드
             checkAuth();
             await loadImageCount(username);
+            await loadPromptCount(username);
         } else {
             throw new Error('아이디나 비밀번호가 틀렸어요 😢');
         }
