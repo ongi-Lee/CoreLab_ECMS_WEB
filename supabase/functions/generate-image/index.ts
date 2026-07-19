@@ -48,9 +48,9 @@ serve(async (req) => {
       "high quality digital illustration",
     ].join(" ");
 
-    // Gemini 2.5 flash image 모델 호출
+    // Gemini 3.1 flash lite image 모델 호출 (API 키는 Supabase Secret에 안전하게 보관)
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${geminiApiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
