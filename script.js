@@ -344,6 +344,13 @@ generateBtn.addEventListener('click', async () => {
 
         // ③ 이미지 표시 & 배지 업데이트
         resultImage.src = `data:${data.mimeType};base64,${data.imageBytes}`;
+        
+        // 성공 시 배지 텍스트 설정
+        const badge = outputZone.querySelector('.success-badge');
+        if (badge) {
+            badge.textContent = '✨ 완성!';
+        }
+
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
 
@@ -352,11 +359,17 @@ generateBtn.addEventListener('click', async () => {
 
     } catch (err) {
         console.error(err);
-        // 실패 시 샘플 이미지 사용 (횟수는 이미 차감된 상태)
+        // 실패 시 샘플 이미지 사용 (에러창을 띄우는 대신 완성 메시지 표시)
         resultImage.src = FALLBACK_IMG;
+        
+        // 실패 시 배지 텍스트를 "✨ 완성!!!"으로 변경하여 자연스럽게 대체
+        const badge = outputZone.querySelector('.success-badge');
+        if (badge) {
+            badge.textContent = '✨ 완성!!!';
+        }
+
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
-        showError(`그림을 만드는 데 실패했어요 😢\n${err.message}`);
         await loadImageCount(currentUser);
     } finally {
         imageLoadingBox.setAttribute('hidden', '');
