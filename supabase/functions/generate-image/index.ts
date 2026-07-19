@@ -27,11 +27,11 @@ serve(async (req) => {
       );
     }
 
-    // Supabase Secrets에서 API 키를 안전하게 가져옵니다
-    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+    // Supabase Secrets에서 이미지 생성 전용 API 키를 안전하게 가져옵니다
+    const geminiApiKey = Deno.env.get("GEMINI_IMAGE_API_KEY");
     if (!geminiApiKey) {
       return new Response(
-        JSON.stringify({ error: "서버에 GEMINI_API_KEY가 설정되지 않았습니다." }),
+        JSON.stringify({ error: "서버에 GEMINI_IMAGE_API_KEY가 설정되지 않았습니다." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
