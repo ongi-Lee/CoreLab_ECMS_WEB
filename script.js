@@ -819,40 +819,6 @@ logoutBtn.addEventListener('click', () => {
     checkAuth();
 });
 
-// 처음부터 다시 하기 처리
-const resetAppBtn = document.getElementById('resetAppBtn');
-resetAppBtn.addEventListener('click', () => {
-    compareState.isComparing = false;
-    compareState.first = null;
-    compareState.second = null;
-    compareState.category = null;
-    compareState.newValue = null;
-
-    state.character  = null;
-    state.background = null;
-    state.action     = null;
-    state.koreanPrompt = "";
-    state.englishPrompt = "";
-
-    // 버튼 활성화 상태 및 UI 초기화
-    document.querySelectorAll('.selection-btn').forEach(btn => {
-        btn.classList.remove('active-char', 'active-bg', 'active-action');
-    });
-
-    document.querySelectorAll('.compare-option-btn').forEach(btn => {
-        btn.classList.remove('active-char', 'active-bg', 'active-action', 'original-selection');
-        btn.disabled = false;
-    });
-    compareActionZone.setAttribute('hidden', '');
-
-    document.getElementById('step4').setAttribute('hidden', '');
-    outputZone.setAttribute('hidden', '');
-    promptDisplay.innerHTML = `<span class="prompt-placeholder">주인공, 배경, 행동 버튼을 모두 고른 다음<br>아래 [마법 주문 만들기] 버튼을 놀러주세요!</span>`;
-    document.querySelector('.prompt-preview-zone').classList.remove('has-prompt');
-
-    checkSelections();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
 
 // 에러 메시지 헬퍼
 function showLoginError(msg) {
