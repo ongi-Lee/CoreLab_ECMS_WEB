@@ -25,6 +25,13 @@ const state = {
     englishPrompt: "",   // 이미지 생성에 사용하는 영어 프롬프트 (화면에 미표시)
 };
 
+// Step 4 두 그림 비교 상태 관리
+const compareState = {
+    isComparing: false,
+    first: null,  // { character, background, action, imageUrl, promptText }
+    second: null  // { character, background, action, imageUrl, promptText }
+};
+
 
 /* ────────────────────────────────────────────────────────
    DOM 요소 취득
@@ -77,6 +84,279 @@ function checkSelections() {
         createPromptBtn.textContent = '📝 마법 주문 만들기 ✨';
     }
 }
+
+// Step 4 이미지 완료 시 상태 처리 및 UI 반영 (첫 번째 그림 기준)
+function handleImageCompletion(imageUrl) {
+    if (compareState.isComparing) return; // 이미 비교 모드라면 무시
+
+    compareState.first = {
+        character: state.character,
+        background: state.background,
+        action: state.action,
+        imageUrl: imageUrl,
+        promptText: state.koreanPrompt
+    };
+    compareState.isComparing = true;
+
+    // 첫 번째 그림 카드 채우기
+    document.getElementById('compareImg1').src = compareState.first.imageUrl;
+    document.getElementById('compareSelections1').innerHTML = `
+        <span>👤 ${compareState.first.character}</span>
+        <span>🏞️ ${compareState.first.background}</span>
+        <span>🏃 ${getActionKoreanName(compareState.first.action)}</span>
+    `;
+
+    // 모든 옵션 버튼 리셋 및 원래 선택 항목 비활성화 처리
+    compareOptionButtons.forEach(optBtn => {
+        optBtn.classList.remove('original-selection', 'active-char', 'active-bg', 'active-action');
+        optBtn.disabled = false;
+
+        const cat = optBtn.dataset.category;
+        let originalValue = '';
+        if (cat === 'character') originalValue = compareState.first.character;
+        else if (cat === 'background') originalValue = compareState.first.background;
+        else if (cat === 'action') originalValue = compareState.first.action;
+
+        if (optBtn.dataset.value === originalValue) {
+            optBtn.classList.add('original-selection');
+            optBtn.disabled = true;
+        }
+    });
+
+    // Step 4 UI 요소 초기화
+    compareActionZone.setAttribute('hidden', '');
+    compareGenerateBtn.disabled = true;
+    compareGenerateBtn.textContent = '🎨 두 번째 그림 그리기!';
+
+    // 두 번째 그림 카드 초기화
+    const wrapper2 = document.getElementById('compareImg2Wrapper');
+    const img2 = document.getElementById('compareImg2');
+    wrapper2.classList.add('placeholder');
+    img2.setAttribute('hidden', '');
+    img2.src = '';
+    document.getElementById('compareSelections2').innerHTML = '';
+    document.getElementById('differenceNoteZone').setAttribute('hidden', '');
+
+    // Step 4 보이기
+    document.getElementById('step4').removeAttribute('hidden');
+}
+
+/* ────────────────────────────────────────────────────────
+   Step 4 전용 바꿀 항목/버튼 및 액션 핸들러
+   ──────────────────────────────────────────────────────── */
+const compareActionZone       = document.getElementById('compareActionZone');
+const compareGenerateBtn     = document.getElementById('compareGenerateBtn');
+const compareOptionButtons    = document.querySelectorAll('.compare-option-btn');
+
+// 바꿀 항목의 옵션 버튼 클릭 이벤트 바인딩 (하나를 선택하면 다른 모든 선택을 해제하여 단 하나만 골라지도록 설정)
+compareOptionButtons.forEach(optBtn => {
+    optBtn.addEventListener('click', () => {
+        if (optBtn.classList.contains('original-selection')) return;
+
+        // 다른 모든 옵션 버튼의 active 클래스 해제 (전체 카테고리 중 단 1개만 바꿀 수 있도록 강제)
+        compareOptionButtons.forEach(b => {
+            b.classList.remove('active-char', 'active-bg', 'active-action');
+        });
+
+        // 현재 클릭한 버튼의 카테고리에 맞는 active 클래스 추가
+        const category = optBtn.dataset.category;
+        let activeClass = '';
+        if (category === 'character') activeClass = 'active-char';
+        else if (category === 'background') activeClass = 'active-bg';
+        else if (category === 'action') activeClass = 'active-action';
+
+        optBtn.classList.add(activeClass);
+
+        compareState.category = category;
+        compareState.newValue = optBtn.dataset.value;
+
+        // 두 번째 그리기 버튼 노출 및 활성화
+        compareActionZone.removeAttribute('hidden');
+        compareGenerateBtn.disabled = false;
+
+        let changeText = '';
+        if (category === 'character') {
+            changeText = `주인공: ${compareState.first.character} ➡️ ${compareState.newValue}`;
+        } else if (category === 'background') {
+            changeText = `배경: ${compareState.first.background} ➡️ ${compareState.newValue}`;
+        } else if (category === 'action') {
+            const cleanText = optBtn.textContent.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '').trim();
+            changeText = `행동: ${getActionKoreanName(compareState.first.action)} ➡️ ${cleanText}`;
+        }
+
+        compareGenerateBtn.textContent = `🎨 두 번째 그림 그리기! (${changeText})`;
+    });
+});
+
+// 3. 두 번째 그림 그리기 버튼 클릭 이벤트 바인딩 (주문 + 이미지 연속 호출)
+compareGenerateBtn.addEventListener('click', async () => {
+    const sessionVal = localStorage.getItem('mallang_session') || '';
+    const currentUser = sessionVal.replace('logged_in_', '');
+
+    hideError();
+    document.getElementById('differenceNoteZone').setAttribute('hidden', '');
+    imageLoadingBox.removeAttribute('hidden');
+
+    const loadingTextEl = imageLoadingBox.querySelector('.loading-text');
+    const originalLoadingText = loadingTextEl.textContent;
+    loadingTextEl.textContent = '두 번째 마법 그림을 그리고 있어요... 🎨';
+
+    compareGenerateBtn.disabled = true;
+    const originalBtnText = compareGenerateBtn.textContent;
+    compareGenerateBtn.textContent = '⏳ 두 번째 마법 그림 그리는 중...';
+
+    // 최종 파라미터 조합
+    const secondChar = compareState.category === 'character' ? compareState.newValue : compareState.first.character;
+    const secondBg   = compareState.category === 'background' ? compareState.newValue : compareState.first.background;
+    const secondAction = compareState.category === 'action' ? compareState.newValue : compareState.first.action;
+
+    try {
+        // ① 먼저 DB에서 이미지 생성 횟수 차감 시도
+        const countRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_image_count`, {
+            method: 'POST',
+            headers: {
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_username: currentUser })
+        });
+
+        const canGenerate = await countRes.json();
+
+        if (canGenerate !== true) {
+            showError('이미지 생성 횟수를 모두 사용했어요! 선생님께 문의해 주세요 😢');
+            lockGenerateBtn();
+            compareGenerateBtn.textContent = '🚫 이미지 생성 횟수를 모두 사용했어요!';
+            compareGenerateBtn.style.background = '#e2e8f0';
+            compareGenerateBtn.style.color = '#94a3b8';
+            compareGenerateBtn.style.boxShadow = 'none';
+            updateCountBadge(MAX_IMAGE_COUNT);
+            return;
+        }
+
+        // ② 두 번째 마법 주문 (프롬프트) 백엔드 자동 요청
+        const promptRes = await callEdgeFunction('generate-prompt', {
+            character:  secondChar,
+            background: secondBg,
+            action:     secondAction,
+        });
+
+        // ③ 두 번째 이미지 백엔드 요청
+        const data = await callEdgeFunction('generate-image', {
+            prompt: promptRes.englishPrompt,
+        });
+
+        const secondImgUrl = `data:${data.mimeType};base64,${data.imageBytes}`;
+        compareState.second = {
+            character: secondChar,
+            background: secondBg,
+            action: secondAction,
+            imageUrl: secondImgUrl,
+            promptText: promptRes.koreanPrompt
+        };
+
+        // UI 업데이트
+        const wrapper2 = document.getElementById('compareImg2Wrapper');
+        const img2 = document.getElementById('compareImg2');
+        img2.src = compareState.second.imageUrl;
+        img2.removeAttribute('hidden');
+        wrapper2.classList.remove('placeholder');
+
+        // 바뀐 내역 배지 강조 표시
+        let selectionHTML = '';
+        if (compareState.second.character !== compareState.first.character) {
+            selectionHTML += `<span class="changed-item">👤 ${compareState.second.character} (주인공 변경)</span>`;
+        } else {
+            selectionHTML += `<span>👤 ${compareState.second.character}</span>`;
+        }
+
+        if (compareState.second.background !== compareState.first.background) {
+            selectionHTML += `<span class="changed-item">🏞️ ${compareState.second.background} (배경 변경)</span>`;
+        } else {
+            selectionHTML += `<span>🏞️ ${compareState.second.background}</span>`;
+        }
+
+        if (compareState.second.action !== compareState.first.action) {
+            selectionHTML += `<span class="changed-item">🏃 ${getActionKoreanName(compareState.second.action)} (행동 변경)</span>`;
+        } else {
+            selectionHTML += `<span>🏃 ${getActionKoreanName(compareState.second.action)}</span>`;
+        }
+        document.getElementById('compareSelections2').innerHTML = selectionHTML;
+
+        // 차이점 기록장 오픈
+        document.getElementById('differenceNoteZone').removeAttribute('hidden');
+        document.getElementById('differenceInput').value = '';
+        
+        await loadImageCount(currentUser);
+        setTimeout(() => {
+            document.getElementById('differenceNoteZone').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+
+    } catch (err) {
+        console.error(err);
+        // 실패 시 mock 이미지로 처리
+        compareState.second = {
+            character: secondChar,
+            background: secondBg,
+            action: secondAction,
+            imageUrl: FALLBACK_IMG,
+            promptText: "샘플 주문 정보"
+        };
+
+        const wrapper2 = document.getElementById('compareImg2Wrapper');
+        const img2 = document.getElementById('compareImg2');
+        img2.src = FALLBACK_IMG;
+        img2.removeAttribute('hidden');
+        wrapper2.classList.remove('placeholder');
+
+        let selectionHTML = '';
+        if (compareState.second.character !== compareState.first.character) {
+            selectionHTML += `<span class="changed-item">👤 ${compareState.second.character} (주인공 변경)</span>`;
+        } else {
+            selectionHTML += `<span>👤 ${compareState.second.character}</span>`;
+        }
+
+        if (compareState.second.background !== compareState.first.background) {
+            selectionHTML += `<span class="changed-item">🏞️ ${compareState.second.background} (배경 변경)</span>`;
+        } else {
+            selectionHTML += `<span>🏞️ ${compareState.second.background}</span>`;
+        }
+
+        if (compareState.second.action !== compareState.first.action) {
+            selectionHTML += `<span class="changed-item">🏃 ${getActionKoreanName(compareState.second.action)} (행동 변경)</span>`;
+        } else {
+            selectionHTML += `<span>🏃 ${getActionKoreanName(compareState.second.action)}</span>`;
+        }
+        document.getElementById('compareSelections2').innerHTML = selectionHTML;
+
+        document.getElementById('differenceNoteZone').removeAttribute('hidden');
+        document.getElementById('differenceInput').value = '';
+        
+        await loadImageCount(currentUser);
+        setTimeout(() => {
+            document.getElementById('differenceNoteZone').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+    } finally {
+        imageLoadingBox.setAttribute('hidden', '');
+        loadingTextEl.textContent = originalLoadingText;
+        compareGenerateBtn.disabled = false;
+        compareGenerateBtn.textContent = originalBtnText;
+    }
+});
+
+// 행동 data-value 명칭 변환 헬퍼
+function getActionKoreanName(val) {
+    if (val === '춤을 추고') return '춤추기';
+    if (val === '폴짝폴짝 뛰고') return '뛰기';
+    if (val === '신나게 달리고') return '달리기';
+    if (val === '얌전히 서서') return '서있기';
+    if (val === '쿨쿨 잠을 자고') return '잠자기';
+    if (val === '재미있게 책을 읽고') return '책읽기';
+    if (val === '노래를 부르고') return '노래하기';
+    return val;
+}
+
 
 
 /* ────────────────────────────────────────────────────────
@@ -357,6 +637,9 @@ generateBtn.addEventListener('click', async () => {
         // DB에서 최신 횟수 다시 읽어 배지 갱신
         await loadImageCount(currentUser);
 
+        // Step 4 처리 추가
+        handleImageCompletion(resultImage.src);
+
     } catch (err) {
         console.error(err);
         // 실패 시 샘플 이미지 사용 (에러창을 띄우는 대신 완성 메시지 표시)
@@ -371,6 +654,9 @@ generateBtn.addEventListener('click', async () => {
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
         await loadImageCount(currentUser);
+
+        // 실패 시에도 Step 4 샘플 이미지로 처리 추가
+        handleImageCompletion(resultImage.src);
     } finally {
         imageLoadingBox.setAttribute('hidden', '');
         // 버튼 복원은 lockGenerateBtn이 아닌 경우에만
@@ -504,6 +790,21 @@ loginIdInput.addEventListener('keypress', (e) => {
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('mallang_session');
     
+    // Step 4 숨김 및 초기화
+    document.getElementById('step4').setAttribute('hidden', '');
+    compareState.isComparing = false;
+    compareState.first = null;
+    compareState.second = null;
+    compareState.category = null;
+    compareState.newValue = null;
+
+    // Step 4 내부 UI 초기화
+    document.querySelectorAll('.compare-option-btn').forEach(btn => {
+        btn.classList.remove('active-char', 'active-bg', 'active-action', 'original-selection');
+        btn.disabled = false;
+    });
+    compareActionZone.setAttribute('hidden', '');
+
     // 선택값 초기화
     state.character  = null;
     state.background = null;
@@ -516,6 +817,41 @@ logoutBtn.addEventListener('click', () => {
     
     checkSelections();
     checkAuth();
+});
+
+// 처음부터 다시 하기 처리
+const resetAppBtn = document.getElementById('resetAppBtn');
+resetAppBtn.addEventListener('click', () => {
+    compareState.isComparing = false;
+    compareState.first = null;
+    compareState.second = null;
+    compareState.category = null;
+    compareState.newValue = null;
+
+    state.character  = null;
+    state.background = null;
+    state.action     = null;
+    state.koreanPrompt = "";
+    state.englishPrompt = "";
+
+    // 버튼 활성화 상태 및 UI 초기화
+    document.querySelectorAll('.selection-btn').forEach(btn => {
+        btn.classList.remove('active-char', 'active-bg', 'active-action');
+    });
+
+    document.querySelectorAll('.compare-option-btn').forEach(btn => {
+        btn.classList.remove('active-char', 'active-bg', 'active-action', 'original-selection');
+        btn.disabled = false;
+    });
+    compareActionZone.setAttribute('hidden', '');
+
+    document.getElementById('step4').setAttribute('hidden', '');
+    outputZone.setAttribute('hidden', '');
+    promptDisplay.innerHTML = `<span class="prompt-placeholder">주인공, 배경, 행동 버튼을 모두 고른 다음<br>아래 [마법 주문 만들기] 버튼을 놀러주세요!</span>`;
+    document.querySelector('.prompt-preview-zone').classList.remove('has-prompt');
+
+    checkSelections();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // 에러 메시지 헬퍼

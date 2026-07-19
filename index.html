@@ -190,6 +190,105 @@
             </div>
         </div>
 
+        <!-- Step 4: 두 그림 차이 비교하기 -->
+        <section class="step-section compare-section" id="step4" hidden>
+            <div class="step-header">
+                <span class="step-badge">Step 4</span>
+                <h2 class="step-title">두 그림 차이 비교하기 🔍</h2>
+            </div>
+            <p class="step-description">첫 번째 그림에서 딱 하나만 다른 것으로 바꿔서 두 그림을 서로 비교해 봐요!</p>
+            
+            <!-- 주인공 바꾸기 카테고리 -->
+            <div class="sub-step-wrapper">
+                <div class="step-header">
+                    <span class="step-badge sub-badge">주인공</span>
+                    <h2 class="step-title sub-title">새로운 주인공 고르기</h2>
+                </div>
+                <div class="selection-grid compare-option-grid" id="compareCharGrid">
+                    <button type="button" class="selection-btn compare-option-btn" data-category="character" data-value="코끼리"><span class="emoji">🐘</span>코끼리</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="character" data-value="호랑이"><span class="emoji">🐯</span>호랑이</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="character" data-value="토끼"><span class="emoji">🐰</span>토끼</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="character" data-value="참새"><span class="emoji">🐦</span>참새</button>
+                </div>
+            </div>
+
+            <!-- 배경 바꾸기 카테고리 -->
+            <div class="sub-step-wrapper">
+                <div class="step-header">
+                    <span class="step-badge sub-badge">배경</span>
+                    <h2 class="step-title sub-title">새로운 배경 고르기</h2>
+                </div>
+                <div class="selection-grid compare-option-grid" id="compareBgGrid">
+                    <button type="button" class="selection-btn compare-option-btn" data-category="background" data-value="우주"><span class="emoji">🚀</span>우주</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="background" data-value="숲 속"><span class="emoji">🌳</span>숲 속</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="background" data-value="바다"><span class="emoji">🐳</span>바다</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="background" data-value="해변"><span class="emoji">🏖️</span>해변</button>
+                </div>
+            </div>
+
+            <!-- 행동 바꾸기 카테고리 -->
+            <div class="sub-step-wrapper">
+                <div class="step-header">
+                    <span class="step-badge sub-badge">행동</span>
+                    <h2 class="step-title sub-title">새로운 행동 고르기</h2>
+                </div>
+                <div class="selection-grid compare-option-grid" id="compareActionGrid">
+                    <button type="button" class="selection-btn compare-option-btn" data-category="action" data-value="춤을 추고"><span class="emoji">💃</span>춤추기</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="action" data-value="폴짝폴짝 뛰고"><span class="emoji">🤸</span>뛰기</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="action" data-value="신나게 달리고"><span class="emoji">🏃</span>달리기</button>
+                    <button type="button" class="selection-btn compare-option-btn" data-category="action" data-value="노래를 부르고"><span class="emoji">🎤</span>노래하기</button>
+                </div>
+            </div>
+
+            <!-- 두 번째 그림 완성하기 -->
+            <div id="compareActionZone" class="sub-step-wrapper" hidden>
+                <div class="step-header">
+                    <span class="step-badge sub-badge no-bg">완성</span>
+                    <h2 class="step-title sub-title">두 번째 그림 완성하기</h2>
+                </div>
+                <p class="step-description">버튼 아래를 눌러 두 번째 마법 그림을 완성해 봐요!</p>
+                <button type="button" id="compareGenerateBtn" class="generate-btn" style="margin-top: 10px;" disabled>
+                    🎨 두 번째 그림 그리기!
+                </button>
+            </div>
+
+            <!-- 두 그림 비교 스페이스 -->
+            <div class="compare-grid" style="margin-top: 36px;">
+                <!-- 첫 번째 그림 카드 -->
+                <div class="compare-card first-card">
+                    <div class="card-tag tag-first">첫 번째 그림 🎨</div>
+                    <div class="compare-image-wrapper">
+                        <img id="compareImg1" src="" alt="첫 번째 그림" />
+                    </div>
+                    <div class="compare-selections" id="compareSelections1">
+                        <!-- 선택 정보 -->
+                    </div>
+                </div>
+
+                <!-- 두 번째 그림 카드 -->
+                <div class="compare-card second-card">
+                    <div class="card-tag tag-second">두 번째 그림 🎨</div>
+                    <div class="compare-image-wrapper placeholder" id="compareImg2Wrapper">
+                        <div class="placeholder-text">여기에 두 번째 그림이 그려질 거예요!</div>
+                        <img id="compareImg2" src="" alt="두 번째 그림" hidden />
+                    </div>
+                    <div class="compare-selections" id="compareSelections2">
+                        <!-- 선택 정보 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 차이점 적기 공간 (두 번째 그림 완성 시 노출) -->
+            <div id="differenceNoteZone" class="difference-note-zone" hidden>
+                <div class="note-header">
+                    <h3>📝 두 그림의 차이점 기록장</h3>
+                </div>
+                <p class="note-description">두 그림에서 달라진 부분이 무엇인지 글로 직접 써보세요!</p>
+                <textarea id="differenceInput" placeholder="예: 첫 번째 그림에서는 코끼리가 우주에서 춤을 췄는데, 두 번째 그림에서는 코끼리 대신 사자가 춤을 추고 있어요. 주인공이 바뀌었어요!"></textarea>
+                <button type="button" id="resetAppBtn" class="reset-btn">🔄 처음부터 다시 하기</button>
+            </div>
+        </section>
+
     </div><!-- /.container -->
 
     <script src="script.js"></script>
