@@ -71,17 +71,33 @@ serve(async (req) => {
     }
 
     const geminiData = await geminiRes.json();
-    // Expected blob format from Gemini response
-    const generatedImage = (geminiData.candidates?.[0]?.content?.parts?.[0]?.blob) || {};
+    
+    // Gemini 3.1과 이전 버전의 이미지 응답 포맷(inlineData 및 blob)을 둘 다 지원하도록 파싱
+    const parts = geminiData.candidates?.[0]?.content?.parts || [];
+    let imageBytes = "";
+    let mimeType = "image/png";
 
-    if (!generatedImage.content) {
+    for (const part of parts) {
+      if (part.inlineData) {
+        imageBytes = part.inlineData.data;
+        mimeType = part.inlineData.mimeType || "image/png";
+        break;
+      } else if (part.blob) {
+        imageBytes = part.blob.content;
+        mimeType = part.blob.mimeType || "image/png";
+        break;
+      }
+    }
+
+    if (!imageBytes) {
+      console.error("Gemini API Full Response:", JSON.stringify(geminiData));
       throw new Error("이미지 데이터가 반환되지 않았습니다. 프롬프트를 확인해주세요.");
     }
 
     return new Response(
       JSON.stringify({
-        imageBytes: generatedImage.content,
-        mimeType:   generatedImage.mimeType || "image/png",
+        imageBytes: imageBytes,
+        mimeType:   mimeType,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
