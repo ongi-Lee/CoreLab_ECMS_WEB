@@ -261,6 +261,37 @@ header p {
     margin-top: 16px;
 }
 
+/* 남은 횟수 배지 */
+.count-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #f8fafc;
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #475569;
+    transition: all 0.3s;
+}
+
+.count-badge[hidden] {
+    display: none !important;
+}
+
+.count-icon {
+    font-size: 1.3rem;
+}
+
+.count-number {
+    font-size: 1.4rem;
+    font-weight: 900;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
 /* 프롬프트 만들기 버튼 */
 .create-btn {
     width: 100%;

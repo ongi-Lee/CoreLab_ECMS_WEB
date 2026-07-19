@@ -145,6 +145,15 @@
             <button id="createPromptBtn" class="create-btn" disabled aria-label="AI 마법 주문 만들기">
                 📝 마법 주문 만들기
             </button>
+
+            <!-- 남은 횟수 표시 배지 -->
+            <div id="countBadge" class="count-badge" hidden>
+                <span class="count-icon">🎨</span>
+                <span>그림 그리기 남은 횟수: </span>
+                <span id="remainingCount" class="count-number">5</span>
+                <span>회</span>
+            </div>
+
             <button id="generateBtn" class="generate-btn" disabled aria-label="AI에게 그림 그려달라고 하기">
                 🎨 AI에게 그림 그려달라고 하기
             </button>

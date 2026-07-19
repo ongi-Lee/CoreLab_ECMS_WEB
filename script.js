@@ -40,6 +40,11 @@ const imageLoadingBox   = document.getElementById('imageLoadingBox');
 const outputZone        = document.getElementById('outputZone');
 const resultImage       = document.getElementById('resultImage');
 const errorMessage      = document.getElementById('errorMessage');
+const countBadge        = document.getElementById('countBadge');
+const remainingCountEl  = document.getElementById('remainingCount');
+
+// 이미지 생성 최대 횟수
+const MAX_IMAGE_COUNT = 5;
 
 
 /* ────────────────────────────────────────────────────────
@@ -159,6 +164,58 @@ createPromptBtn.addEventListener('click', async () => {
 
 
 /* ────────────────────────────────────────────────────────
+   이미지 생성 횟수 관리
+   ──────────────────────────────────────────────────────── */
+
+// 횟수 배지 UI 업데이트
+function updateCountBadge(usedCount) {
+    const remaining = MAX_IMAGE_COUNT - usedCount;
+    countBadge.removeAttribute('hidden');
+
+    if (remaining <= 0) {
+        // 횟수 소진 시 문구로 표시
+        countBadge.innerHTML = `<span class="count-icon">🎨</span> <span>가능한 횟수가 모두 소진되었습니다.</span>`;
+    } else {
+        // 남은 횟수 숫자 표시
+        countBadge.innerHTML = `<span class="count-icon">🎨</span> <span>그림 그리기 남은 횟수: </span><span id="remainingCount" class="count-number">${remaining}</span><span>회</span>`;
+    }
+}
+
+// 로그인한 사용자의 현재 사용 횟수를 DB에서 가져오기
+async function loadImageCount(username) {
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_image_count`, {
+            method: 'POST',
+            headers: {
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_username: username })
+        });
+        if (!res.ok) return;
+        const usedCount = await res.json();
+        updateCountBadge(usedCount);
+
+        // 이미 5회 소진 시 버튼 잠금
+        if (usedCount >= MAX_IMAGE_COUNT) {
+            lockGenerateBtn();
+        }
+    } catch (e) {
+        console.error('횟수 조회 실패:', e);
+    }
+}
+
+// 그리기 버튼 잠금 처리
+function lockGenerateBtn() {
+    generateBtn.disabled    = true;
+    generateBtn.textContent = '🚫 이미지 생성 횟수를 모두 사용했어요!';
+    generateBtn.style.background = '#e2e8f0';
+    generateBtn.style.color      = '#94a3b8';
+    generateBtn.style.boxShadow  = 'none';
+}
+
+/* ────────────────────────────────────────────────────────
    그림 그리기 버튼
    ──────────────────────────────────────────────────────── */
 generateBtn.addEventListener('click', async () => {
@@ -167,34 +224,66 @@ generateBtn.addEventListener('click', async () => {
         return;
     }
 
+    // 현재 로그인된 유저명 가져오기
+    const sessionVal = localStorage.getItem('mallang_session') || '';
+    const currentUser = sessionVal.replace('logged_in_', '');
+
     // 로딩 시작
     hideError();
     outputZone.setAttribute('hidden', '');
     imageLoadingBox.removeAttribute('hidden');
-    generateBtn.disabled          = true;
-    generateBtn.textContent       = '⏳ 그림을 그리고 있어요...';
+    generateBtn.disabled    = true;
+    generateBtn.textContent = '⏳ 그림을 그리고 있어요...';
 
     try {
+        // ① 먼저 DB에서 횟수 차감 시도 (5회 초과 시 false 반환)
+        const countRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_image_count`, {
+            method: 'POST',
+            headers: {
+                'apikey':        SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({ p_username: currentUser })
+        });
+
+        const canGenerate = await countRes.json();
+
+        if (canGenerate !== true) {
+            showError('이미지 생성 횟수를 모두 사용했어요! 선생님께 문의해 주세요 😢');
+            lockGenerateBtn();
+            updateCountBadge(MAX_IMAGE_COUNT);
+            return;
+        }
+
+        // ② 횟수 차감 성공 → 실제 이미지 생성 요청
         const data = await callEdgeFunction('generate-image', {
             prompt: state.englishPrompt,
         });
 
-        // 이미지 표시 (성공)
+        // ③ 이미지 표시 & 배지 업데이트
         resultImage.src = `data:${data.mimeType};base64,${data.imageBytes}`;
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
 
+        // DB에서 최신 횟수 다시 읽어 배지 갱신
+        await loadImageCount(currentUser);
+
     } catch (err) {
         console.error(err);
-        // 실패 시 샘플 이미지 사용
+        // 실패 시 샘플 이미지 사용 (횟수는 이미 차감된 상태)
         resultImage.src = FALLBACK_IMG;
         outputZone.removeAttribute('hidden');
         outputZone.scrollIntoView({ behavior: 'smooth' });
         showError(`그림을 만드는 데 실패했어요 😢\n${err.message}`);
+        await loadImageCount(currentUser);
     } finally {
         imageLoadingBox.setAttribute('hidden', '');
-        generateBtn.disabled          = false;
-        generateBtn.textContent       = '🎨 AI에게 그림 그려달라고 하기!';
+        // 버튼 복원은 lockGenerateBtn이 아닌 경우에만
+        if (generateBtn.textContent === '⏳ 그림을 그리고 있어요...') {
+            generateBtn.disabled    = false;
+            generateBtn.textContent = '🎨 AI에게 그림 그려달라고 하기!';
+        }
     }
 });
 
@@ -285,8 +374,9 @@ async function handleLogin() {
             loginIdInput.value = '';
             loginPwInput.value = '';
 
-            // 로그인 성공 UI 전환
+            // 로그인 성공 UI 전환 및 횟수 로드
             checkAuth();
+            await loadImageCount(username);
         } else {
             throw new Error('아이디나 비밀번호가 틀렸어요 😢');
         }
